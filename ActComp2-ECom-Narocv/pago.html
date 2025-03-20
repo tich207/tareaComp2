@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TIC Phones - Pago</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding-top: 56px;
+    }
+    footer {
+      margin-top: auto;
+    }
+    .metodo-pago { display: none; }
+    .spinner-border { display: none; }
+    .is-invalid {
+      border-color: #dc3545 !important;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right calc(0.375em + 0.1875rem) center;
+      background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+    .invalid-feedback {
+      width: 100%;
+      margin-top: 0.25rem;
+      font-size: 0.875em;
+      color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <!-- navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container">
+      <a class="navbar-brand" href="index.html">TIC Phones</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
+          <li class="nav-item"><a class="nav-link" href="productos.html">Productos</a></li>
+          <li class="nav-item"><a class="nav-link" href="contacto.html">Contacto</a></li>
+          <li class="nav-item"><a class="nav-link" href="sucursales.html">Sucursales</a></li>
+          <li class="nav-item"><a class="nav-link" href="historia.html">Nuestra historia</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-4 mb-5">
+    <h1 class="mb-4 text-center">Resumen</h1>
+    <div class="row">
+
+      <div class="col-md-6">
+        <div id="resumen-carrito" class="p-3 border rounded">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-resumen">
+           
+            </tbody>
+          </table>
+          <h4>Total: $<span id="total-resumen">0.00</span></h4>
+        </div>
+        
+        <div class="mt-4 p-3 border rounded">
+          <h4 class="mb-3">Seleccione método de entrega:</h4>
+          <div class="btn-group d-flex" role="group" id="opciones-entrega">
+            <button type="button" class="btn btn-primary rounded-pill" data-tipo="pickup">Recoger en tienda</button>
+            <button type="button" class="btn btn-primary rounded-pill" data-tipo="domicilio">Envío a domicilio</button>
+          </div>
+        </div>
+
+        <div id="formularios-entrega" class="mt-3 p-3 border rounded">
+          <div id="form-domicilio" class="form-envio" style="display: none;">
+            <h5>Datos de envío</h5>
+            <input type="text" id="input-direccion" class="form-control" placeholder="Dirección" required>
+            <input type="text" id="input-referencias" class="form-control" placeholder="Referencias" required>
+            <h5 class="mt-3">Datos de contacto</h5>
+            <input type="tel" id="input-celular" class="form-control" placeholder="Celular" required>
+            <input type="email" id="input-correo" class="form-control" placeholder="Correo" required>
+          </div>
+          
+          <div id="form-pickup" class="form-envio" style="display: none;">
+            <h5>Seleccione dia y mes de recolección</h5>
+            <input type="text" id="input-fecha" class="form-control" placeholder="DD-MM" pattern="\d{2}-\d{2}" required>
+            <h5 class="mt-3">Datos de contacto</h5>
+            <input type="tel" id="input-celular-pickup" class="form-control" placeholder="Celular" required>
+            <input type="email" id="input-correo-pickup" class="form-control" placeholder="Correo" required>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-6">
+        <div id="form-pago" class="p-3 border rounded">
+          <h4 class="mb-3">Método de pago</h4>
+          <div class="accordion" id="metodoPagoAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                        data-bs-target="#tarjetaCollapse" aria-expanded="true" aria-controls="tarjetaCollapse">
+                  Tarjeta (crédito / débito)
+                </button>
+              </h2>
+              <div id="tarjetaCollapse" class="accordion-collapse collapse show" data-bs-parent="#metodoPagoAccordion">
+                <div class="accordion-body">
+                  <input type="text" class="form-control" placeholder="Nombre en la tarjeta" required>
+                  <input type="number" class="form-control" placeholder="16 dígitos de la tarjeta" required>
+                  <input type="month" class="form-control" placeholder="MM/AA" required>
+                  <input type="number" class="form-control" placeholder="CVV" required>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="text-center my-4">
+            <button class="btn btn-success btn-lg" onclick="confirmarPago()" id="btn-pagar">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <span class="btn-text">Realizar pago</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación de pago -->
+  <div class="modal fade" id="confirmacionModal" tabindex="-1" aria-labelledby="confirmacionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmacionModalLabel">¡Gracias por tu compra!</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body text-center">
+          <p id="mensaje-confirmacion-modal"></p>
+          <p id="datos-envio"></p>
+        </div>
+        <div class="modal-footer">
+          <a href="index.html" class="btn btn-primary">Volver al inicio</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-primary text-white pt-4">
+        <div class="container">
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <h5>TIC Phones</h5>
+          <p>¡Donde compran los que saben!</p>
+        </div>
+        <div class="col-md-4 mb-3">
+          <h5>Únete al equipo</h5>
+          <ul class="list-unstyled">
+            <li>Envìanos un mensaje al correo</li>
+            <li>contratacionticphones@gmail.com</li>
+          </ul>
+        </div>
+        <div class="col-md-4 mb-3">
+          <h5>Redes Sociales</h5>
+          <ul class="list-unstyled">
+            <li><a href="https://www.facebook.com/" target="_blank" class="text-white text-decoration-none">Facebook</a></li>
+            <li><a href="https://www.instagram.com/" target="_blank" class="text-white text-decoration-none">Instagram</a></li>
+            <li><a href="https://www.tiktok.com/" target="_blank" class="text-white text-decoration-none">TikTok</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-top pt-3 text-center">
+        <p class="mb-0">Aviso de privacidad © 2025, TIC Phones o sus afiliados</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Recuperar el carrito almacenado en localStorage
+    let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+
+    // Función para mostrar el resumen del carrito
+    function mostrarResumen() {
+      const tbody = document.getElementById('tabla-resumen');
+      tbody.innerHTML = '';
+      let total = 0;
+      carrito.forEach(item => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
+        tbody.innerHTML += `
+          <tr>
+            <td>${item.nombre}</td>
+            <td>$${item.precio.toFixed(2)}</td>
+            <td>${item.cantidad}</td>
+            <td>$${subtotal.toFixed(2)}</td>
+          </tr>
+        `;
+      });
+      document.getElementById('total-resumen').innerText = total.toFixed(2);
+    }
+
+    // Manejo de opciones de entrega
+    document.querySelectorAll('[data-tipo]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const boton = e.currentTarget;
+        // Remover clase active de todos los botones
+        document.querySelectorAll('[data-tipo]').forEach(b => {
+          b.classList.remove('active', 'btn-primary');
+          b.classList.add('btn-outline-primary');
+        });
+        // Agregar clase active al botón seleccionado
+        boton.classList.add('active', 'btn-primary');
+        boton.classList.remove('btn-outline-primary');
+    
+        // Mostrar formulario correspondiente
+        const tipo = boton.dataset.tipo;
+        document.querySelectorAll('.form-envio').forEach(form => form.style.display = 'none');
+        if (tipo === 'domicilio') {
+          document.getElementById('form-domicilio').style.display = 'block';
+        } else if (tipo === 'pickup') {
+          document.getElementById('form-pickup').style.display = 'block';
+        }
+      });
+    });
+
+    // Validación de campos: solo se validan los campos visibles
+    function validarCampos() {
+      let valido = true;
+      
+      // Validar campos de entrega
+      document.querySelectorAll('.form-envio [required]').forEach(input => {
+        if (input.offsetParent !== null && !input.checkValidity()) {
+          input.classList.add('is-invalid');
+          valido = false;
+        }
+      });
+    
+      // Validar método de pago activo
+      const metodoPagoActivo = document.querySelector('#metodoPagoAccordion .accordion-collapse.show');
+      if (metodoPagoActivo) {
+        metodoPagoActivo.querySelectorAll('[required]').forEach(input => {
+          if (!input.checkValidity()) {
+            input.classList.add('is-invalid');
+            valido = false;
+          }
+        });
+      } else {
+        alert('Por favor seleccione un método de pago');
+        valido = false;
+      }
+    
+      return valido;
+    }
+
+    // Función confirmarPago modificada
+    function confirmarPago() {
+      if (carrito.length === 0) {
+        alert('El carrito está vacío.');
+        return;
+      }
+      
+      // Validar selección de método de entrega
+      const metodoSeleccionado = document.querySelector('[data-tipo].active');
+      if (!metodoSeleccionado) {
+        alert('Por favor seleccione un método de entrega');
+        return;
+      }
+    
+      // Validar campos
+      if (!validarCampos()) {
+        return;
+      }
+    
+      // Mostrar spinner
+      const btn = document.getElementById('btn-pagar');
+      btn.disabled = true;
+      btn.querySelector('.spinner-border').style.display = 'inline-block';
+      btn.querySelector('.btn-text').style.display = 'none';
+    
+      // Simular procesamiento
+      setTimeout(() => {
+        localStorage.removeItem('carrito');
+        // Generar número de orden
+        const orden = Math.floor(10000 + Math.random() * 90000);
+        
+        // Según el método seleccionado, extraer el celular y correo
+        let celular = "";
+        let correo = "";
+        const tipo = metodoSeleccionado.dataset.tipo;
+        if (tipo === 'domicilio') {
+          celular = document.getElementById('input-celular').value;
+          correo = document.getElementById('input-correo').value;
+        } else if (tipo === 'pickup') {
+          celular = document.getElementById('input-celular-pickup').value;
+          correo = document.getElementById('input-correo-pickup').value;
+        }
+        
+        // Inyectar mensaje en el modal de confirmación
+        document.getElementById('mensaje-confirmacion-modal').innerHTML = `<strong>Orden #</strong> ${orden}`;
+        document.getElementById('datos-envio').innerHTML = `Se ha enviado el detalle de compra al correo ingresado`;
+        
+        // Mostrar el modal de confirmación
+        const modalElement = document.getElementById('confirmacionModal');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+        
+        // Restaurar botón
+        btn.disabled = false;
+        btn.querySelector('.spinner-border').style.display = 'none';
+        btn.querySelector('.btn-text').style.display = 'inline-block';
+      }, 2000);
+    }
+    
+    // Limpiar validación al editar
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', () => {
+        if (input.checkValidity()) {
+          input.classList.remove('is-invalid');
+        }
+      });
+    });
+    
+    // Ejecutar al cargar la página
+    document.addEventListener('DOMContentLoaded', mostrarResumen);
+  </script>
+</body>
+</html>
+
+
+
